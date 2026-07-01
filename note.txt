@@ -1,0 +1,19 @@
+python -m venv venv
+py -m pip install fastapi "uvicorn[standard]"
+python -m uvicorn main:app --reload
+
+///connect db
+pip install fastapi uvicorn sqlalchemy psycopg2-binary pydantic-settings
+pip install python-dotenv
+pip install psycopg2-binary
+python -m uvicorn main:app --reload
+///run
+./venv/Scripts/python -m uvicorn main:app --reload
+python -m uvicorn main:app --reload
+
+
+
+///install
+./venv/Scripts/python -m pip install "pydantic[email]"
+venv/Scripts/python.exe -m pip install python-multipart
+python -m pip install python-multipart
