@@ -80,10 +80,24 @@ def create_item(
         raise HTTPException(status_code=400, detail=f"កំហុសប្រព័ន្ធទិន្នន័យ (អាចមកពីជល់ ID ក្នុង DB): {str(db_err)}")
 
 
-# 2. READ ALL ITEMS (🔓 Public)
+# # 2. READ ALL ITEMS (🔓 Public)
+# @router.get("/", response_model=list[ItemResponse])
+# def get_all_items(db: Session = Depends(get_db)):
+#     return db.query(Item).all()
+
+# 2. READ ALL ITEMS (🔓 Public - បន្ថែមមុខងារ Filter តាម Category)
 @router.get("/", response_model=list[ItemResponse])
-def get_all_items(db: Session = Depends(get_db)):
-    return db.query(Item).all()
+def get_all_items(
+    category_id: int = None, # ◄ ✅ បន្ថែម Query Parameter (បើមិនបោះមក គឺស្មើ None មានន័យថាយកទាំងអស់)
+    db: Session = Depends(get_db)
+):
+    query = db.query(Item)
+    
+    # បើអ្នកប្រើប្រាស់បោះ category_id មក នោះយើងនឹងច្រោះយកតែទំនិញណាដែលត្រូវនឹង Category នោះ
+    if category_id is not None:
+        query = query.filter(Item.category_id == category_id)
+        
+    return query.all()
 
 
 # 3. READ ONE ITEM (🔓 Public)
