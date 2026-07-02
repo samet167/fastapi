@@ -6,7 +6,7 @@ class Item(Base):
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    name = Column(String, index=True, nullable=False)  # ✅ ដក unique=True ចេញដើម្បីងាយស្រួលគ្រប់គ្រងតាម API
     description = Column(String, nullable=False)
     price = Column(Integer, nullable=False)
     quantity = Column(Integer, nullable=False)

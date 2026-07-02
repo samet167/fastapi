@@ -22,8 +22,7 @@ class RoleChecker:
     def __call__(self, current_user: User = Depends(get_current_user)):
         # 🚨 ចំណុចសំខាន់៖ ត្រូវប្រាកដថាបានដាក់លក្ខខណ្ឌ "not in" បែបនេះ
         if current_user.role not in self.allowed_roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+            raise HTTPException(                status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"អ្នកជា '{current_user.role}' មិនមានសិទ្ធិឡើយ! ទាល់តែជា {self.allowed_roles} ទើបអាចធ្វើបាន។"
             )
         return current_user
