@@ -39,33 +39,39 @@
 # if __name__ == "__main__":
 #     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
     
+
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base  
 
-# 🔌 ទាញយកម៉ូដែលទាំងអស់មក ដើម្បីឱ្យ SQLAlchemy បង្កើតតារាងក្នុង PostgreSQL អូតូ
+# 🔌 ១. ទាញយកម៉ូដែលទាំងអស់មក ដើម្បីឱ្យ SQLAlchemy បង្កើតតារាងក្នុង PostgreSQL អូតូ
 from app.models.user import User
 from app.models.category import Category 
 from app.models.item import Item
+from app.models.cart import CartItem  
+from app.models.order import Order, OrderItem  # ✅ បន្ថែម៖ នាំចូលម៉ូដែលលំដាប់ទិញ និងទំនិញក្នុងវិក្កយបត្រ
 
-# 🔌 ទាញយកផ្លូវ API ទាំងអស់មកប្រើ
+# 🔌 ២. ទាញយកផ្លូវ API (Routes) ទាំងអស់មកប្រើ
 from app.routes.user_routes import router as user_router
 from app.routes.auth_routes import router as auth_router     
 from app.routes.category_routes import router as category_router 
 from app.routes.item_routes import router as item_router
+from app.routes.cart_routes import router as cart_router  
+from app.routes.order_routes import router as order_router  # ✅ បន្ថែម៖ នាំចូល API Routes សម្រាប់ប្រព័ន្ធ Checkout (/orders)
 
-# បង្កើត Tables ទាំងអស់ទៅក្នុង PostgreSQL ស្វ័យប្រវត្តិ
+# បង្កើត Tables ទាំងអស់ទៅក្នុង PostgreSQL ស្វ័យប្រវត្តិកាលណា Server ចាប់ផ្តើមរត់
 Base.metadata.create_all(bind=engine)
 print("Database Tables Synced Successfully! 🎉")
 
 # បង្កើត Instance របស់ FastAPI
-app = FastAPI(title="FastAPI Standard Project Structure with JWT Auth")
+app = FastAPI(title="FastAPI Secure E-commerce Backend with JWT Auth")
 
 # កំណត់បញ្ជីឈ្មោះ Website (Frontend) ដែលយើងអនុញ្ញាតឱ្យហៅ API បាន
 origins = [
-    "http://localhost:3000",  # ផ្លូវរបស់ Next.js Frontend របស់អ្នក
+    "http://localhost:3000",  # ផ្លូវរបស់ Next.js / Angular Frontend របស់អ្នក
     "http://127.0.0.1:3000",
 ]
 
@@ -78,7 +84,7 @@ app.add_middleware(
     allow_headers=["*"],              # អនុញ្ញាតគ្រប់ HTTP Headers
 )
 
-# ✅ បើកទ្វារឱ្យ Browser/Chrome ចូលមើលរូបភាពក្នុង Folder static បាន
+# បើកទ្វារឱ្យ Browser/Chrome ចូលមើលរូបភាពក្នុង Folder static បាន
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ភ្ជាប់ផ្លូវ Routers ទាំងអស់ចូលកម្មវិធីមេ
@@ -86,10 +92,13 @@ app.include_router(user_router)
 app.include_router(auth_router)      
 app.include_router(category_router)  
 app.include_router(item_router)
+app.include_router(cart_router)  
+app.include_router(order_router)  # ✅ បន្ថែម៖ បើកទ្វារ API សម្រាប់ប្រព័ន្ធទូទាត់ប្រាក់ (/orders)
 
 @app.get("/")
 def index():
-    return {"message": "Welcome to FastAPI Secure Project!"}
+    return {"message": "Welcome to FastAPI Secure E-commerce Project!"}
 
 if __name__ == "__main__":
+    # រត់ Server នៅលើ Host Local ធម្មតា (អាចដូរទៅ "0.0.0.0" បើតេស្តជាមួយឧបករណ៍ផ្សេងក្នុង LAN តែមួយ)
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
