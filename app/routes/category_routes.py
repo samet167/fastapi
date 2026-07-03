@@ -6,6 +6,9 @@ from app.models.user import User
 from app.schemas.category_schema import CategoryCreate, CategoryResponse
 # នាំចូល Dependencies សម្រាប់ពិនិត្យសិទ្ធិ
 from app.core.dependencies import get_current_user, RoleChecker
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
@@ -42,13 +45,22 @@ def create_category(
         raise HTTPException(status_code=500, detail=f"កំហុសប្រព័ន្ធខាងក្នុង: {str(e)}")
 
 
-# ២. ទាញយក Category ទាំងអស់ (🔓 ភ្ញៀវទូទៅមើលបានសេរី ឬបើចង់ការពារគ្រាន់តែបើក comment)
+
 @router.get("/", response_model=list[CategoryResponse])
 def get_all_categories(
     db: Session = Depends(get_db),
-    # current_user = Depends(admin_or_user) # 🔒 បើចង់ឱ្យទាល់តែ Login ទើបមើលបាន សូមបើកកូដនេះ
+    skip: int = Query(0, ge=0, description="ចំនួនទិន្នន័យដែលរំលង"),
+    limit: int = Query(10, ge=1, le=100, description="ចំនួនទិន្នន័យក្នុងមួយទំព័រ"),
 ):
-    return db.query(Category).all()
+    categories = (
+        db.query(Category)
+        .order_by(desc(Category.id))  # ID ពីធំទៅតូច
+        .offset(skip)                 # Pagination
+        .limit(limit)
+        .all()
+    )
+
+    return categories
 
 
 # ៣. ទាញយក Category មួយតាម ID (🔒 ត្រូវតែ Login ទើបមើលបាន)

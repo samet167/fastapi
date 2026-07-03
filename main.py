@@ -1,104 +1,61 @@
-
-
-# import uvicorn
-# from fastapi import FastAPI
-# from fastapi.staticfiles import StaticFiles
-# from database import engine, Base  
-
-# # 🔌 ទាញយកម៉ូដែលទាំងអស់មក ដើម្បីឱ្យ SQLAlchemy បង្កើតតារាងក្នុង PostgreSQL អូតូ
-# from app.models.user import User
-# from app.models.category import Category 
-# from app.models.item import Item
-
-# # 🔌 ទាញយកផ្លូវ API ទាំងអស់មកប្រើ
-# from app.routes.user_routes import router as user_router
-# from app.routes.auth_routes import router as auth_router     
-# from app.routes.category_routes import router as category_router 
-# from app.routes.item_routes import router as item_router
-
-# # បង្កើត Tables ទាំងអស់ទៅក្នុង PostgreSQL ស្វ័យប្រវត្តិ
-# Base.metadata.create_all(bind=engine)
-# print("Database Tables Synced Successfully! 🎉")
-
-# # បង្កើត Instance របស់ FastAPI
-# app = FastAPI(title="FastAPI Standard Project Structure with JWT Auth")
-
-# # បើកទ្វារឱ្យ Browser អាចចូលមើលរូបភាពក្នុង Folder static បាន
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# # ភ្ជាប់ផ្លូវ Routers ទាំងអស់ចូលកម្មវិធីមេ
-# app.include_router(user_router)
-# app.include_router(auth_router)      
-# app.include_router(category_router)  
-# app.include_router(item_router)
-
-# @app.get("/")
-# def index():
-#     return {"message": "Welcome to FastAPI Secure Project!"}
-
-# if __name__ == "__main__":
-#     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
-    
-
-
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base  
 
-# 🔌 ១. ទាញយកម៉ូដែលទាំងអស់មក ដើម្បីឱ្យ SQLAlchemy បង្កើតតារាងក្នុង PostgreSQL អូតូ
+# 🔌 ១. នាំចូលម៉ូដែលទាំងអស់ (Models)
 from app.models.user import User
 from app.models.category import Category 
 from app.models.item import Item
 from app.models.cart import CartItem  
-from app.models.order import Order, OrderItem  # ✅ បន្ថែម៖ នាំចូលម៉ូដែលលំដាប់ទិញ និងទំនិញក្នុងវិក្កយបត្រ
+from app.models.order import Order, OrderItem  
 
-# 🔌 ២. ទាញយកផ្លូវ API (Routes) ទាំងអស់មកប្រើ
+# 🔌 ២. នាំចូលផ្លូវ API (Routes)
 from app.routes.user_routes import router as user_router
 from app.routes.auth_routes import router as auth_router     
 from app.routes.category_routes import router as category_router 
 from app.routes.item_routes import router as item_router
 from app.routes.cart_routes import router as cart_router  
-from app.routes.order_routes import router as order_router  # ✅ បន្ថែម៖ នាំចូល API Routes សម្រាប់ប្រព័ន្ធ Checkout (/orders)
+from app.routes.order_routes import router as order_router 
+from app.routes.dashboard import router as dashboard_router  # នាំចូល Router នៃ Dashboard
 
-# បង្កើត Tables ទាំងអស់ទៅក្នុង PostgreSQL ស្វ័យប្រវត្តិកាលណា Server ចាប់ផ្តើមរត់
+# បង្កើត Tables ទាំងអស់ទៅក្នុង Database ស្វ័យប្រវត្តិកាលណា Server ចាប់ផ្តើមរត់
 Base.metadata.create_all(bind=engine)
 print("Database Tables Synced Successfully! 🎉")
 
 # បង្កើត Instance របស់ FastAPI
-app = FastAPI(title="FastAPI Secure E-commerce Backend with JWT Auth")
+app = FastAPI(title="FastAPI Secure E-commerce Backend")
 
-# កំណត់បញ្ជីឈ្មោះ Website (Frontend) ដែលយើងអនុញ្ញាតឱ្យហៅ API បាន
+# កំណត់ CORS ដើម្បីឱ្យ Frontend ហៅ API បាន
 origins = [
-    "http://localhost:3000",  # ផ្លូវរបស់ Next.js / Angular Frontend របស់អ្នក
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
 
-# ដាក់ Middleware CORS ចូលទៅក្នុងកម្មវិធីមេ app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,            # អនុញ្ញាតឱ្យឈ្មោះខាងលើចូលប្រើបាន
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],              # អនុញ្ញាតគ្រប់ Method (GET, POST, PUT, DELETE, ...)
-    allow_headers=["*"],              # អនុញ្ញាតគ្រប់ HTTP Headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# បើកទ្វារឱ្យ Browser/Chrome ចូលមើលរូបភាពក្នុង Folder static បាន
+# បើកទ្វារឱ្យ Browser មើលរូបភាពក្នុង Folder static បាន
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ភ្ជាប់ផ្លូវ Routers ទាំងអស់ចូលកម្មវិធីមេ
+# 🔌 ៣. ភ្ជាប់ផ្លូវ Routers ទាំងអស់ចូលកម្មវិធីមេ
 app.include_router(user_router)
 app.include_router(auth_router)      
 app.include_router(category_router)  
 app.include_router(item_router)
 app.include_router(cart_router)  
-app.include_router(order_router)  # ✅ បន្ថែម៖ បើកទ្វារ API សម្រាប់ប្រព័ន្ធទូទាត់ប្រាក់ (/orders)
+app.include_router(order_router) 
+app.include_router(dashboard_router) # ភ្ជាប់ Dashboard Router មកទីនេះ
 
 @app.get("/")
 def index():
     return {"message": "Welcome to FastAPI Secure E-commerce Project!"}
 
 if __name__ == "__main__":
-    # រត់ Server នៅលើ Host Local ធម្មតា (អាចដូរទៅ "0.0.0.0" បើតេស្តជាមួយឧបករណ៍ផ្សេងក្នុង LAN តែមួយ)
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

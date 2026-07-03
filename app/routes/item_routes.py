@@ -8,6 +8,9 @@ from app.models.item import Item
 from app.models.category import Category
 from app.schemas.item_schema import ItemResponse
 
+from fastapi import Query, Depends
+from sqlalchemy.orm import Session
+from sqlalchemy import desc
 # 🔒 ហៅជំនួយការឆែក Authorization មកប្រើ
 from app.core.dependencies import RoleChecker
 
@@ -85,19 +88,32 @@ def create_item(
 # def get_all_items(db: Session = Depends(get_db)):
 #     return db.query(Item).all()
 
-# 2. READ ALL ITEMS (🔓 Public - បន្ថែមមុខងារ Filter តាម Category)
+
 @router.get("/", response_model=list[ItemResponse])
 def get_all_items(
-    category_id: int = None, # ◄ ✅ បន្ថែម Query Parameter (បើមិនបោះមក គឺស្មើ None មានន័យថាយកទាំងអស់)
+    category_id: int | None = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
+    skip = (page - 1) * limit
+
     query = db.query(Item)
-    
-    # បើអ្នកប្រើប្រាស់បោះ category_id មក នោះយើងនឹងច្រោះយកតែទំនិញណាដែលត្រូវនឹង Category នោះ
+
+    # Filter តាម Category
     if category_id is not None:
         query = query.filter(Item.category_id == category_id)
-        
-    return query.all()
+
+    # Sort ID ពីធំទៅតូច + Pagination
+    items = (
+        query
+        .order_by(desc(Item.id))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return items
 
 
 # 3. READ ONE ITEM (🔓 Public)
